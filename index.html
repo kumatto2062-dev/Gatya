@@ -1,235 +1,1151 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ガチャ計算ツール</title>
+
 <style>
-  body {
-    font-family: sans-serif;
-    max-width: 800px;
-    margin: auto;
-    padding: 20px;
-    background: #f7f7f7;
-  }
-  h1, h2 { text-align: center; }
-  .card {
-    background: white;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  }
-  input, button {
-    font-size: 18px;
-    padding: 10px;
-    margin: 5px 0;
-    width: 100%;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-  }
-  button {
-    background: #2196F3;
-    color: white;
-    cursor: pointer;
+  * {
+    box-sizing: border-box;
   }
 
-  /* スイッチ風チェックボックス */
+  body {
+    font-family:
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      "Noto Sans JP",
+      sans-serif;
+
+    margin: 0;
+    padding: 20px;
+
+    background: linear-gradient(135deg, #f5f7fb, #eef2f7);
+    color: #333;
+  }
+
+  .container {
+    max-width: 850px;
+    margin: 0 auto;
+  }
+
+  /* ヘッダー */
+  .header {
+    text-align: center;
+    margin-bottom: 25px;
+  }
+
+  .header h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    color: #222;
+  }
+
+  .header p {
+    margin: 0;
+    color: #777;
+    font-size: 14px;
+  }
+
+  /* カード */
+  .card {
+    background: rgba(255,255,255,0.95);
+    padding: 24px;
+    margin-bottom: 20px;
+    border-radius: 18px;
+    box-shadow:
+      0 4px 15px rgba(0,0,0,0.06),
+      0 1px 3px rgba(0,0,0,0.04);
+  }
+
+  .card h2 {
+    margin: 0 0 20px;
+    font-size: 21px;
+    color: #222;
+  }
+
+  .section-title {
+    margin: 25px 0 12px;
+    font-size: 16px;
+    font-weight: bold;
+  }
+
+  /* 入力 */
+  .input-group {
+    margin-bottom: 14px;
+  }
+
+  .input-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    color: #555;
+  }
+
+  input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #d9dce1;
+    border-radius: 10px;
+    font-size: 16px;
+    background: #fafbfc;
+    outline: none;
+    transition: 0.2s;
+  }
+
+  input:focus {
+    border-color: #4f8cff;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(79,140,255,0.12);
+  }
+
+  /* ボタン */
+  button {
+    border: none;
+    border-radius: 10px;
+    padding: 13px 18px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.97);
+  }
+
+  .primary-btn {
+    width: 100%;
+    background: #4f8cff;
+    color: white;
+    margin-top: 5px;
+  }
+
+  .add-btn {
+    width: 100%;
+    background: #697586;
+    color: white;
+  }
+
+  .delete-btn {
+    background: #fff0f0;
+    color: #e53935;
+    border: 1px solid #ffd1d1;
+    padding: 9px 15px;
+    font-size: 14px;
+  }
+
+  .delete-btn:hover {
+    background: #ffe2e2;
+  }
+
+  /* スイッチ */
+  .switch-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: #f7f8fa;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
   .switch {
     position: relative;
     display: inline-block;
     width: 50px;
-    height: 26px;
-    margin-right: 10px;
+    height: 27px;
+    flex-shrink: 0;
   }
-  .switch input { display: none; }
+
+  .switch input {
+    display: none;
+  }
+
   .slider {
     position: absolute;
     cursor: pointer;
-    top: 0; left: 0;
-    right: 0; bottom: 0;
+    inset: 0;
     background-color: #ccc;
-    transition: .3s;
-    border-radius: 26px;
+    transition: 0.25s;
+    border-radius: 30px;
   }
+
   .slider:before {
     position: absolute;
     content: "";
-    height: 20px; width: 20px;
-    left: 3px; bottom: 3px;
-    background-color: white;
-    transition: .3s;
+    width: 21px;
+    height: 21px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    transition: 0.25s;
     border-radius: 50%;
-  }
-  input:checked + .slider {
-    background-color: #4CAF50;
-  }
-  input:checked + .slider:before {
-    transform: translateX(24px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   }
 
-  .deleteBtn {
-    background: #F44336;
-    color: white;
-    padding: 8px;
-    border-radius: 6px;
-    cursor: pointer;
-    width: auto;
-    margin-top: 10px;
+  .switch input:checked + .slider {
+    background-color: #4caf50;
   }
 
-  /* 追加項目を縦並びにする */
+  .switch input:checked + .slider:before {
+    transform: translateX(23px);
+  }
+
+  /* 追加項目 */
+  .bonus-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .bonus-form button {
+    grid-column: 1 / -1;
+  }
+
   .bonus-item {
-    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    margin-top: 10px;
+    background: #f7f8fa;
+    border-radius: 10px;
+  }
+
+  .bonus-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+  }
+
+  .bonus-delete {
+    width: auto;
+    padding: 6px 10px;
+    background: white;
+    color: #e53935;
+    border: 1px solid #eee;
+    font-size: 12px;
+  }
+
+  /* 参加者一覧 */
+  .empty {
+    text-align: center;
+    padding: 35px 10px;
+    color: #999;
+  }
+
+  .user-card {
+    background: white;
+    border: 1px solid #e7e9ed;
+    border-radius: 15px;
+    padding: 18px;
+    margin-bottom: 12px;
+    transition: 0.2s;
+  }
+
+  .user-card:hover {
+    box-shadow: 0 5px 15px rgba(0,0,0,0.06);
+  }
+
+  .user-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .user-name {
+    font-size: 20px;
+    font-weight: bold;
+    word-break: break-word;
+  }
+
+  .point-badge {
+    background: #eef4ff;
+    color: #3975df;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .result-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+
+  .result-box {
+    background: #f7f8fa;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .result-label {
+    display: block;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 3px;
+  }
+
+  .result-value {
+    font-size: 17px;
+    font-weight: bold;
+  }
+
+  .total-box {
+    background: linear-gradient(135deg, #4f8cff, #6d9cff);
+    color: white;
+    border-radius: 12px;
+    padding: 15px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .total-label {
+    font-size: 13px;
+    opacity: 0.9;
+  }
+
+  .total-value {
+    display: block;
+    font-size: 30px;
+    font-weight: bold;
+    margin-top: 3px;
+  }
+
+  .user-footer {
+    text-align: right;
+  }
+
+  /* 通知 */
+  #message {
+    display: none;
+    padding: 12px 15px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-size: 14px;
+  }
+
+  #message.success {
+    display: block;
+    background: #eaf8ee;
+    color: #26733b;
+  }
+
+  #message.error {
+    display: block;
+    background: #fff0f0;
+    color: #c62828;
+  }
+
+  /* スマホ */
+  @media (max-width: 600px) {
+
+    body {
+      padding: 12px;
+    }
+
+    .card {
+      padding: 18px;
+      border-radius: 15px;
+    }
+
+    .header h1 {
+      font-size: 26px;
+    }
+
+    .bonus-form {
+      grid-template-columns: 1fr;
+    }
+
+    .bonus-form button {
+      grid-column: auto;
+    }
+
+    .result-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .result-box:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .user-header {
+      align-items: flex-start;
+      flex-direction: column;
+    }
   }
 </style>
 </head>
+
 <body>
 
-<h1>ガチャ計算ツール</h1>
+<div class="container">
 
-<!-- ガチャ設定 -->
-<div class="card">
-  <h2>ガチャ設定</h2>
+  <div class="header">
+    <h1>🎰 ガチャ計算ツール</h1>
+    <p>参加者ごとのポイントからガチャ回数を自動計算</p>
+  </div>
 
-  <input id="pointPerGacha" type="number" placeholder="1回に必要なポイント（例：200）">
+  <div id="message"></div>
 
-  <label>
-    <span class="switch">
-      <input id="enableBonus" type="checkbox">
-      <span class="slider"></span>
-    </span>
-    10回でおまけをつける（+1回）
-  </label>
+  <!-- ガチャ設定 -->
+  <div class="card">
 
-  <h3>追加項目（シェア・バッチなど）</h3>
-  <input id="bonusName" placeholder="項目名（例：シェア）">
-  <input id="bonusValue" type="number" placeholder="1つにつき増える回数（例：1）">
-  <button onclick="addBonus()">項目を追加</button>
+    <h2>⚙️ ガチャ設定</h2>
 
-  <div id="bonusList"></div>
+    <div class="input-group">
+      <label>1回に必要なポイント</label>
+      <input
+        id="pointPerGacha"
+        type="number"
+        min="1"
+        placeholder="例：200"
+      >
+    </div>
+
+    <div class="switch-row">
+
+      <label class="switch">
+        <input id="enableBonus" type="checkbox">
+        <span class="slider"></span>
+      </label>
+
+      <span>
+        <strong>10回でおまけ</strong><br>
+        <small>10回につき +1回</small>
+      </span>
+
+    </div>
+
+    <div class="section-title">
+      ➕ 追加項目
+    </div>
+
+    <div class="bonus-form">
+
+      <input
+        id="bonusName"
+        placeholder="項目名（例：シェア）"
+      >
+
+      <input
+        id="bonusValue"
+        type="number"
+        min="1"
+        placeholder="増える回数（例：1）"
+      >
+
+      <button class="add-btn" onclick="addBonus()">
+        ＋ 項目を追加
+      </button>
+
+    </div>
+
+    <div id="bonusList"></div>
+
+  </div>
+
+
+  <!-- 参加者追加 -->
+  <div class="card">
+
+    <h2>👤 参加者を追加</h2>
+
+    <div class="input-group">
+      <label>名前</label>
+      <input
+        id="userName"
+        placeholder="参加者の名前"
+      >
+    </div>
+
+    <div class="input-group">
+      <label>獲得ポイント</label>
+      <input
+        id="userPoint"
+        type="number"
+        min="0"
+        placeholder="例：5000"
+      >
+    </div>
+
+    <button
+      class="primary-btn"
+      onclick="addUser()"
+    >
+      ＋ 参加者を追加
+    </button>
+
+  </div>
+
+
+  <!-- 参加者一覧 -->
+  <div class="card">
+
+    <h2>👥 参加者一覧</h2>
+
+    <div id="userList">
+      <div class="empty">
+        参加者はまだ登録されていません
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
-<!-- 参加者追加 -->
-<div class="card">
-  <h2>参加者を追加</h2>
-  <input id="userName" placeholder="名前">
-  <input id="userPoint" type="number" placeholder="獲得ポイント">
-  <button onclick="addUser()">追加する</button>
-</div>
-
-<!-- 結果 -->
-<div class="card">
-  <h2>参加者一覧</h2>
-  <div id="userList"></div>
-</div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
+
 <script>
+
+  /* =========================
+     Firebase設定
+  ========================= */
+
   const firebaseConfig = {
+
     apiKey: "AIzaSyBnNykEi3gfwkk5aJWFsFj-I3mwA6t1Rp0",
+
     authDomain: "gatya-1cd01.firebaseapp.com",
-    databaseURL: "https://gatya-1cd01-default-rtdb.firebaseio.com",
+
+    databaseURL:
+      "https://gatya-1cd01-default-rtdb.firebaseio.com",
+
     projectId: "gatya-1cd01",
-    storageBucket: "gatya-1cd01.appspot.com",
+
+    storageBucket:
+      "gatya-1cd01.appspot.com",
+
     messagingSenderId: "34578332637",
-    appId: "1:34578332637:web:82e5a9b85dcd09a1a69434"
+
+    appId:
+      "1:34578332637:web:82e5a9b85dcd09a1a69434"
   };
 
+
   firebase.initializeApp(firebaseConfig);
+
   const db = firebase.database();
+
+
+  /* =========================
+     データ
+  ========================= */
 
   const bonusItems = {};
 
+
+  /* =========================
+     メッセージ
+  ========================= */
+
+  function showMessage(text, type = "success") {
+
+    const message =
+      document.getElementById("message");
+
+    message.textContent = text;
+
+    message.className = type;
+
+    setTimeout(() => {
+
+      message.style.display = "none";
+
+    }, 3000);
+  }
+
+
+  /* =========================
+     追加項目
+  ========================= */
+
   function addBonus() {
-    const name = document.getElementById("bonusName").value;
-    const value = Number(document.getElementById("bonusValue").value);
 
-    if (!name || !value) return alert("項目名と値を入力してください");
+    const name =
+      document.getElementById("bonusName").value.trim();
 
-    bonusItems[name] = { value, enabled: true };
+    const value =
+      Number(
+        document.getElementById("bonusValue").value
+      );
+
+
+    if (!name || value <= 0) {
+
+      alert("項目名と増える回数を入力してください");
+
+      return;
+    }
+
+
+    bonusItems[name] = {
+
+      value: value,
+
+      enabled: true
+
+    };
+
+
+    document.getElementById("bonusName").value = "";
+
+    document.getElementById("bonusValue").value = "";
+
 
     renderBonusList();
   }
 
+
   function renderBonusList() {
-    const div = document.getElementById("bonusList");
+
+    const div =
+      document.getElementById("bonusList");
+
     div.innerHTML = "";
 
-    Object.entries(bonusItems).forEach(([name, item]) => {
-      div.innerHTML += `
-        <div class="bonus-item">
-          <span class="switch">
-            <input type="checkbox" id="bonusEnable_${name}" checked onchange="toggleBonus('${name}')">
-            <span class="slider"></span>
-          </span>
-          ${name}：+${item.value}回
-        </div>
-      `;
-    });
+
+    Object.entries(bonusItems).forEach(
+      ([name, item]) => {
+
+        const itemDiv =
+          document.createElement("div");
+
+        itemDiv.className = "bonus-item";
+
+
+        itemDiv.innerHTML = `
+
+          <div class="bonus-info">
+
+            <label class="switch">
+
+              <input
+                type="checkbox"
+                ${item.enabled ? "checked" : ""}
+              >
+
+              <span class="slider"></span>
+
+            </label>
+
+            <span>
+              ${escapeHtml(name)}
+              ：+${item.value}回
+            </span>
+
+          </div>
+
+          <button
+            class="bonus-delete"
+          >
+            削除
+          </button>
+
+        `;
+
+
+        const checkbox =
+          itemDiv.querySelector(
+            'input[type="checkbox"]'
+          );
+
+
+        checkbox.addEventListener(
+          "change",
+          function() {
+
+            bonusItems[name].enabled =
+              this.checked;
+
+          }
+        );
+
+
+        const deleteButton =
+          itemDiv.querySelector(
+            ".bonus-delete"
+          );
+
+
+        deleteButton.addEventListener(
+          "click",
+          function() {
+
+            delete bonusItems[name];
+
+            renderBonusList();
+
+          }
+        );
+
+
+        div.appendChild(itemDiv);
+
+      }
+    );
   }
 
-  function toggleBonus(name) {
-    bonusItems[name].enabled = document.getElementById(`bonusEnable_${name}`).checked;
-  }
 
-  function addUser() {
-    const name = document.getElementById("userName").value;
-    const point = Number(document.getElementById("userPoint").value);
-    const pointPerGacha = Number(document.getElementById("pointPerGacha").value);
-    const enableBonus = document.getElementById("enableBonus").checked;
+  /* =========================
+     参加者追加
+  ========================= */
 
-    if (!name || !point || !pointPerGacha) {
-      alert("名前・ポイント・ガチャ設定を入力してください");
+  async function addUser() {
+
+    const name =
+      document
+        .getElementById("userName")
+        .value
+        .trim();
+
+
+    const point =
+      Number(
+        document.getElementById("userPoint").value
+      );
+
+
+    const pointPerGacha =
+      Number(
+        document
+          .getElementById("pointPerGacha")
+          .value
+      );
+
+
+    const enableBonus =
+      document
+        .getElementById("enableBonus")
+        .checked;
+
+
+    /* 入力チェック */
+
+    if (!name) {
+
+      alert("名前を入力してください");
+
       return;
+
     }
 
-    const normal = Math.floor(point / pointPerGacha);
-    const bonusGacha = enableBonus ? Math.floor(normal / 10) : 0;
+
+    if (
+      document.getElementById("userPoint").value === ""
+      ||
+      point < 0
+    ) {
+
+      alert("獲得ポイントを入力してください");
+
+      return;
+
+    }
+
+
+    if (!pointPerGacha || pointPerGacha <= 0) {
+
+      alert("1回に必要なポイントを入力してください");
+
+      return;
+
+    }
+
+
+    /* =========================
+       ガチャ計算
+    ========================= */
+
+    const normal =
+      Math.floor(
+        point / pointPerGacha
+      );
+
+
+    const bonusGacha =
+      enableBonus
+        ? Math.floor(normal / 10)
+        : 0;
+
 
     let extra = 0;
-    Object.entries(bonusItems).forEach(([name, item]) => {
-      if (item.enabled) extra += item.value;
-    });
 
-    const total = normal + bonusGacha + extra;
 
-    db.ref("users/" + name).set({
-      name,
-      point,
-      normal,
-      bonusGacha,
-      extra,
-      total
-    });
+    Object.values(bonusItems).forEach(
+      item => {
+
+        if (item.enabled) {
+
+          extra += item.value;
+
+        }
+
+      }
+    );
+
+
+    const total =
+      normal +
+      bonusGacha +
+      extra;
+
+
+    /* =========================
+       Firebase保存
+       push()を使用
+    ========================= */
+
+    const userRef =
+      db.ref("users").push();
+
+
+    const userData = {
+
+      name: name,
+
+      point: point,
+
+      normal: normal,
+
+      bonusGacha: bonusGacha,
+
+      extra: extra,
+
+      total: total,
+
+      createdAt:
+        firebase.database.ServerValue.TIMESTAMP
+
+    };
+
+
+    try {
+
+      await userRef.set(userData);
+
+
+      /* 入力欄をクリア */
+
+      document
+        .getElementById("userName")
+        .value = "";
+
+      document
+        .getElementById("userPoint")
+        .value = "";
+
+
+      showMessage(
+        "参加者を追加しました"
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Firebase保存エラー:",
+        error
+      );
+
+
+      showMessage(
+        "保存に失敗しました。FirebaseのDatabaseルールを確認してください。",
+        "error"
+      );
+
+    }
+
   }
 
-  function deleteUser(name) {
-    db.ref("users/" + name).remove();
+
+  /* =========================
+     参加者削除
+  ========================= */
+
+  async function deleteUser(id, name) {
+
+    const result =
+      confirm(
+        `「${name}」を削除しますか？`
+      );
+
+
+    if (!result) {
+
+      return;
+
+    }
+
+
+    try {
+
+      await db
+        .ref("users/" + id)
+        .remove();
+
+
+      showMessage(
+        "参加者を削除しました"
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        "Firebase削除エラー:",
+        error
+      );
+
+
+      showMessage(
+        "削除に失敗しました",
+        "error"
+      );
+
+    }
+
   }
 
-  db.ref("users").on("value", snapshot => {
-    const data = snapshot.val() || {};
-    const div = document.getElementById("userList");
-    div.innerHTML = "";
 
-    Object.values(data).forEach(u => {
-      div.innerHTML += `
-        <div class="card">
-          <strong>${u.name}</strong><br>
-          ポイント：${u.point}<br>
-          通常：${u.normal}回<br>
-          おまけ：${u.bonusGacha}回<br>
-          追加：${u.extra}回<br>
-          <h3>合計：${u.total}回</h3>
-          <button class="deleteBtn" onclick="deleteUser('${u.name}')">削除</button>
-        </div>
-      `;
-    });
-  });
+  /* =========================
+     参加者一覧
+  ========================= */
+
+  db.ref("users").on(
+    "value",
+    snapshot => {
+
+      const data =
+        snapshot.val() || {};
+
+
+      const div =
+        document.getElementById("userList");
+
+
+      div.innerHTML = "";
+
+
+      const users =
+        Object.entries(data);
+
+
+      if (users.length === 0) {
+
+        div.innerHTML = `
+          <div class="empty">
+            参加者はまだ登録されていません
+          </div>
+        `;
+
+        return;
+
+      }
+
+
+      /* 新しい順 */
+
+      users.sort(
+        (a, b) => {
+
+          const timeA =
+            a[1].createdAt || 0;
+
+          const timeB =
+            b[1].createdAt || 0;
+
+          return timeB - timeA;
+
+        }
+      );
+
+
+      users.forEach(
+        ([id, u]) => {
+
+          const card =
+            document.createElement("div");
+
+          card.className =
+            "user-card";
+
+
+          card.innerHTML = `
+
+            <div class="user-header">
+
+              <div class="user-name">
+                ${escapeHtml(u.name)}
+              </div>
+
+              <div class="point-badge">
+                ${formatNumber(u.point)} pt
+              </div>
+
+            </div>
+
+
+            <div class="result-grid">
+
+              <div class="result-box">
+
+                <span class="result-label">
+                  通常
+                </span>
+
+                <span class="result-value">
+                  ${u.normal}回
+                </span>
+
+              </div>
+
+
+              <div class="result-box">
+
+                <span class="result-label">
+                  おまけ
+                </span>
+
+                <span class="result-value">
+                  ${u.bonusGacha}回
+                </span>
+
+              </div>
+
+
+              <div class="result-box">
+
+                <span class="result-label">
+                  追加
+                </span>
+
+                <span class="result-value">
+                  ${u.extra}回
+                </span>
+
+              </div>
+
+            </div>
+
+
+            <div class="total-box">
+
+              <span class="total-label">
+                合計ガチャ回数
+              </span>
+
+              <span class="total-value">
+                ${u.total}回
+              </span>
+
+            </div>
+
+
+            <div class="user-footer">
+
+              <button
+                class="delete-btn"
+                data-id="${id}"
+                data-name="${escapeHtml(u.name)}"
+              >
+                🗑 削除
+              </button>
+
+            </div>
+
+          `;
+
+
+          /* 削除ボタン */
+
+          const deleteButton =
+            card.querySelector(
+              ".delete-btn"
+            );
+
+
+          deleteButton.addEventListener(
+            "click",
+            function() {
+
+              deleteUser(
+                this.dataset.id,
+                this.dataset.name
+              );
+
+            }
+          );
+
+
+          div.appendChild(card);
+
+        }
+      );
+
+    },
+
+    error => {
+
+      console.error(
+        "Firebase読み込みエラー:",
+        error
+      );
+
+
+      showMessage(
+        "Firebaseからデータを読み込めません。Databaseルールを確認してください。",
+        "error"
+      );
+
+    }
+  );
+
+
+  /* =========================
+     XSS対策
+  ========================= */
+
+  function escapeHtml(value) {
+
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  /* =========================
+     数字表示
+  ========================= */
+
+  function formatNumber(value) {
+
+    return Number(value).toLocaleString("ja-JP");
+
+  }
+
 </script>
 
 </body>
 </html>
+```
