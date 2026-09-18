@@ -75,35 +75,83 @@ button,input{font:inherit} button{touch-action:manipulation} .app{max-width:1240
 
   const bonusItems = {};
 
-  // 基本設定もFirebaseへ保存し、リロード・別端末でも共有する
+  // 基本設定は localStorage + Firebase の二重保存にする。
+  // localStorage: 入力直後のリロードでも確実に復元
+  // Firebase: 別端末とも設定を共有
   const basicSettingsRef = db.ref("settings/basic");
   const pointPerGachaInput = document.getElementById("pointPerGacha");
   const enableBonusInput = document.getElementById("enableBonus");
+  const POINT_STORAGE_KEY = "gacha_pointPerGacha";
+  const BONUS_STORAGE_KEY = "gacha_enableBonus";
+  let pointSaveTimer = null;
 
+  // Firebaseより先に、端末内に保存済みの値を即時復元する
+  const savedPoint = localStorage.getItem(POINT_STORAGE_KEY);
+  if (savedPoint !== null && savedPoint !== "" && Number(savedPoint) > 0) {
+    pointPerGachaInput.value = savedPoint;
+  }
+
+  const savedBonus = localStorage.getItem(BONUS_STORAGE_KEY);
+  if (savedBonus !== null) {
+    enableBonusInput.checked = savedBonus === "true";
+  }
+
+  // Firebaseの値が取得できたら、画面とlocalStorageも同期する
   basicSettingsRef.on("value", snapshot => {
     const settings = snapshot.val() || {};
-    if (settings.pointPerGacha !== undefined && settings.pointPerGacha !== null) {
+
+    if (settings.pointPerGacha !== undefined &&
+        settings.pointPerGacha !== null &&
+        Number(settings.pointPerGacha) > 0) {
       pointPerGachaInput.value = settings.pointPerGacha;
+      localStorage.setItem(POINT_STORAGE_KEY, String(settings.pointPerGacha));
     }
+
     if (settings.enableBonus !== undefined) {
       enableBonusInput.checked = settings.enableBonus === true;
+      localStorage.setItem(BONUS_STORAGE_KEY, String(enableBonusInput.checked));
     }
   }, error => {
+    // Firebaseが読めなくてもlocalStorageの値はそのまま利用できる
     console.error("基本設定の読み込みエラー:", error);
-    showMessage("基本設定を読み込めませんでした。", "error");
   });
 
-  pointPerGachaInput.addEventListener("change", async () => {
-    const value = Number(pointPerGachaInput.value);
-    if (pointPerGachaInput.value !== "" && value > 0) {
-      try { await basicSettingsRef.update({ pointPerGacha: value }); }
-      catch (error) { console.error("必要ポイントの保存エラー:", error); }
+  // 入力するたびに端末へ即時保存。Firebaseは連続書き込み防止のため少し遅らせる
+  pointPerGachaInput.addEventListener("input", () => {
+    const raw = pointPerGachaInput.value;
+    const value = Number(raw);
+
+    if (raw !== "" && value > 0) {
+      localStorage.setItem(POINT_STORAGE_KEY, raw);
+
+      clearTimeout(pointSaveTimer);
+      pointSaveTimer = setTimeout(() => {
+        basicSettingsRef.update({ pointPerGacha: value }).catch(error => {
+          console.error("必要ポイントのFirebase保存エラー:", error);
+        });
+      }, 350);
+    } else if (raw === "") {
+      localStorage.removeItem(POINT_STORAGE_KEY);
     }
   });
 
-  enableBonusInput.addEventListener("change", async () => {
-    try { await basicSettingsRef.update({ enableBonus: enableBonusInput.checked }); }
-    catch (error) { console.error("おまけ設定の保存エラー:", error); }
+  // フォーカスを外した時は待たずにFirebaseへ保存
+  pointPerGachaInput.addEventListener("blur", () => {
+    clearTimeout(pointSaveTimer);
+    const value = Number(pointPerGachaInput.value);
+    if (pointPerGachaInput.value !== "" && value > 0) {
+      localStorage.setItem(POINT_STORAGE_KEY, String(value));
+      basicSettingsRef.update({ pointPerGacha: value }).catch(error => {
+        console.error("必要ポイントのFirebase保存エラー:", error);
+      });
+    }
+  });
+
+  enableBonusInput.addEventListener("change", () => {
+    localStorage.setItem(BONUS_STORAGE_KEY, String(enableBonusInput.checked));
+    basicSettingsRef.update({ enableBonus: enableBonusInput.checked }).catch(error => {
+      console.error("おまけ設定の保存エラー:", error);
+    });
   });
 
   // 追加項目はFirebaseへ保存し、リロード・別端末でも共有する
