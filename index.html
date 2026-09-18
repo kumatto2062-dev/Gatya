@@ -75,6 +75,27 @@ button,input{font:inherit} button{touch-action:manipulation} .app{max-width:1240
 
   const bonusItems = {};
 
+  // 追加項目はFirebaseへ保存し、リロード・別端末でも共有する
+  const bonusRef = db.ref("settings/bonusItems");
+
+  bonusRef.on("value", snapshot => {
+    const data = snapshot.val() || {};
+
+    Object.keys(bonusItems).forEach(key => delete bonusItems[key]);
+    Object.entries(data).forEach(([key, item]) => {
+      bonusItems[key] = {
+        name: item.name || key,
+        value: Number(item.value) || 0,
+        enabled: item.enabled !== false
+      };
+    });
+
+    renderBonusList();
+  }, error => {
+    console.error("追加項目の読み込みエラー:", error);
+    showMessage("追加項目を読み込めませんでした。", "error");
+  });
+
 
   /* =========================
      メッセージ
@@ -101,131 +122,85 @@ button,input{font:inherit} button{touch-action:manipulation} .app{max-width:1240
      追加項目
   ========================= */
 
-  function addBonus() {
+  async function addBonus() {
 
-    const name =
-      document.getElementById("bonusName").value.trim();
-
-    const value =
-      Number(
-        document.getElementById("bonusValue").value
-      );
-
+    const name = document.getElementById("bonusName").value.trim();
+    const value = Number(document.getElementById("bonusValue").value);
 
     if (!name || value <= 0) {
-
-      alert("項目名と増える回数を入力してください");
-
+      showMessage("項目名と増える回数を入力してください", "error");
       return;
     }
 
+    // Firebaseのキーに項目名を直接使わず push() で安全なIDを作る
+    const itemRef = bonusRef.push();
 
-    bonusItems[name] = {
+    try {
+      await itemRef.set({
+        name: name,
+        value: value,
+        enabled: true,
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      });
 
-      value: value,
-
-      enabled: true
-
-    };
-
-
-    document.getElementById("bonusName").value = "";
-
-    document.getElementById("bonusValue").value = "";
-
-
-    renderBonusList();
+      document.getElementById("bonusName").value = "";
+      document.getElementById("bonusValue").value = "";
+      showMessage("追加項目を保存しました");
+    } catch (error) {
+      console.error("追加項目の保存エラー:", error);
+      showMessage("追加項目の保存に失敗しました。", "error");
+    }
   }
 
 
   function renderBonusList() {
 
-    const div =
-      document.getElementById("bonusList");
-
+    const div = document.getElementById("bonusList");
     div.innerHTML = "";
 
+    Object.entries(bonusItems).forEach(([id, item]) => {
 
-    Object.entries(bonusItems).forEach(
-      ([name, item]) => {
+      const itemDiv = document.createElement("div");
+      itemDiv.className = "bonus-item";
 
-        const itemDiv =
-          document.createElement("div");
+      itemDiv.innerHTML = `
+        <div class="bonus-info">
+          <label class="switch">
+            <input type="checkbox" ${item.enabled ? "checked" : ""}>
+            <span class="slider"></span>
+          </label>
+          <span>${escapeHtml(item.name)}：+${item.value}回</span>
+        </div>
+        <button class="bonus-delete">削除</button>
+      `;
 
-        itemDiv.className = "bonus-item";
+      const checkbox = itemDiv.querySelector('input[type="checkbox"]');
+      checkbox.addEventListener("change", async function() {
+        try {
+          await bonusRef.child(id).update({ enabled: this.checked });
+        } catch (error) {
+          console.error("追加項目の更新エラー:", error);
+          showMessage("ON/OFFの保存に失敗しました。", "error");
+        }
+      });
 
+      const deleteButton = itemDiv.querySelector(".bonus-delete");
+      deleteButton.addEventListener("click", async function() {
+        if (!confirm(`「${item.name}」を削除しますか？`)) return;
 
-        itemDiv.innerHTML = `
+        try {
+          await bonusRef.child(id).remove();
+          showMessage("追加項目を削除しました");
+        } catch (error) {
+          console.error("追加項目の削除エラー:", error);
+          showMessage("追加項目の削除に失敗しました。", "error");
+        }
+      });
 
-          <div class="bonus-info">
-
-            <label class="switch">
-
-              <input
-                type="checkbox"
-                ${item.enabled ? "checked" : ""}
-              >
-
-              <span class="slider"></span>
-
-            </label>
-
-            <span>
-              ${escapeHtml(name)}
-              ：+${item.value}回
-            </span>
-
-          </div>
-
-          <button
-            class="bonus-delete"
-          >
-            削除
-          </button>
-
-        `;
-
-
-        const checkbox =
-          itemDiv.querySelector(
-            'input[type="checkbox"]'
-          );
-
-
-        checkbox.addEventListener(
-          "change",
-          function() {
-
-            bonusItems[name].enabled =
-              this.checked;
-
-          }
-        );
-
-
-        const deleteButton =
-          itemDiv.querySelector(
-            ".bonus-delete"
-          );
-
-
-        deleteButton.addEventListener(
-          "click",
-          function() {
-
-            delete bonusItems[name];
-
-            renderBonusList();
-
-          }
-        );
-
-
-        div.appendChild(itemDiv);
-
-      }
-    );
+      div.appendChild(itemDiv);
+    });
   }
+
 
 
   /* =========================
