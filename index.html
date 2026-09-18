@@ -75,6 +75,37 @@ button,input{font:inherit} button{touch-action:manipulation} .app{max-width:1240
 
   const bonusItems = {};
 
+  // 基本設定もFirebaseへ保存し、リロード・別端末でも共有する
+  const basicSettingsRef = db.ref("settings/basic");
+  const pointPerGachaInput = document.getElementById("pointPerGacha");
+  const enableBonusInput = document.getElementById("enableBonus");
+
+  basicSettingsRef.on("value", snapshot => {
+    const settings = snapshot.val() || {};
+    if (settings.pointPerGacha !== undefined && settings.pointPerGacha !== null) {
+      pointPerGachaInput.value = settings.pointPerGacha;
+    }
+    if (settings.enableBonus !== undefined) {
+      enableBonusInput.checked = settings.enableBonus === true;
+    }
+  }, error => {
+    console.error("基本設定の読み込みエラー:", error);
+    showMessage("基本設定を読み込めませんでした。", "error");
+  });
+
+  pointPerGachaInput.addEventListener("change", async () => {
+    const value = Number(pointPerGachaInput.value);
+    if (pointPerGachaInput.value !== "" && value > 0) {
+      try { await basicSettingsRef.update({ pointPerGacha: value }); }
+      catch (error) { console.error("必要ポイントの保存エラー:", error); }
+    }
+  });
+
+  enableBonusInput.addEventListener("change", async () => {
+    try { await basicSettingsRef.update({ enableBonus: enableBonusInput.checked }); }
+    catch (error) { console.error("おまけ設定の保存エラー:", error); }
+  });
+
   // 追加項目はFirebaseへ保存し、リロード・別端末でも共有する
   const bonusRef = db.ref("settings/bonusItems");
 
